@@ -45,6 +45,8 @@ def read_bookmarks(
     page: int = 1,
     per_page: int = 30,
     q: Optional[str] = Query(None, description="Search query"),
+    sort_by: str = Query("created_at", description="Field to sort by (created_at, name, full_name)"),
+    order: str = Query("desc", description="Sort order (asc, desc)"),
     current_user: User = Depends(deps.get_current_user),
 ) -> Any:
     # Calculate skip
@@ -65,9 +67,15 @@ def read_bookmarks(
     # Get total count (after filtering)
     total_count = query.count()
     
+    # Apply sorting
+    if order == "asc":
+        sort_attr = getattr(Bookmark, sort_by, Bookmark.created_at).asc()
+    else:
+        sort_attr = getattr(Bookmark, sort_by, Bookmark.created_at).desc()
+        
     # Get paginated results
     bookmarks = query.order_by(
-        Bookmark.created_at.desc()
+        sort_attr
     ).offset(skip).limit(per_page).all()
     
     return {

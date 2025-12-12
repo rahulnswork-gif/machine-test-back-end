@@ -6,6 +6,7 @@ class Settings(BaseSettings):
     API_V1_STR: str = "/api/v1"
     SECRET_KEY: str
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+    REFRESH_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7  # 7 days
     
     POSTGRES_SERVER: str
     POSTGRES_USER: str

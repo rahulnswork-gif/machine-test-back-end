@@ -9,6 +9,7 @@ from app.api import deps
 from app.core import security
 from app.core.config import settings
 from app.models.user import User
+from app.models.token_blacklist import TokenBlacklist
 from app.schemas.user import UserCreate, User as UserSchema
 from app.schemas.token import Token
 
@@ -25,12 +26,90 @@ def login_access_token(
         raise HTTPException(status_code=400, detail="Inactive user")
     
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    refresh_token_expires = timedelta(minutes=settings.REFRESH_TOKEN_EXPIRE_MINUTES)
+    
     return {
         "access_token": security.create_access_token(
             user.id, expires_delta=access_token_expires
         ),
+        "refresh_token": security.create_refresh_token(
+            user.id, expires_delta=refresh_token_expires
+        ),
         "token_type": "bearer",
     }
+
+@router.post("/refresh", response_model=Token)
+def refresh_token(
+    db: Session = Depends(deps.get_db),
+    token: str = Depends(deps.reusable_oauth2)
+) -> Any:
+    """
+    Refresh access token using a valid refresh token.
+    """
+    # Check if token is blacklisted
+    blacklisted = db.query(TokenBlacklist).filter(TokenBlacklist.token == token).first()
+    if blacklisted:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token has been revoked",
+        )
+    
+    try:
+        payload = security.jwt.decode(
+            token, settings.SECRET_KEY, algorithms=[security.ALGORITHM]
+        )
+        if payload.get("type") != "refresh":
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid token type",
+            )
+        user_id = payload.get("sub")
+    except (security.jwt.JWTError, security.ValidationError):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Could not validate credentials",
+        )
+        
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Create new tokens
+    access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    refresh_token_expires = timedelta(minutes=settings.REFRESH_TOKEN_EXPIRE_MINUTES)
+    
+    # Optional: Blacklist the used refresh token (Rotation)
+    # db_token = TokenBlacklist(token=token)
+    # db.add(db_token)
+    # db.commit()
+    
+    return {
+        "access_token": security.create_access_token(
+            user.id, expires_delta=access_token_expires
+        ),
+        "refresh_token": security.create_refresh_token(
+            user.id, expires_delta=refresh_token_expires
+        ),
+        "token_type": "bearer",
+    }
+
+@router.post("/logout")
+def logout(
+    token: str = Depends(deps.reusable_oauth2),
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_user),
+) -> Any:
+    """
+    Logout user by blacklisting the current access token.
+    """
+    # Check if already blacklisted (though deps.get_current_user handles this)
+    if db.query(TokenBlacklist).filter(TokenBlacklist.token == token).first():
+        return {"msg": "Successfully logged out"}
+        
+    db_token = TokenBlacklist(token=token)
+    db.add(db_token)
+    db.commit()
+    return {"msg": "Successfully logged out"}
 
 @router.post("/register", response_model=UserSchema)
 def register_user(
