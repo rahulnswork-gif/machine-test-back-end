@@ -21,7 +21,10 @@ def test_bookmark_sorting():
 
     # 2. Populate Bookmarks (if empty)
     resp = requests.get(f"{BASE_URL}/bookmarks/", headers=headers)
-    bookmarks = resp.json()['data']
+    if resp.status_code != 200:
+        print(f"Failed to get bookmarks: {resp.text}")
+        sys.exit(1)
+    bookmarks = resp.json().get('data', [])
     
     if len(bookmarks) < 3:
         print("Populating bookmarks...")
@@ -39,7 +42,7 @@ def test_bookmark_sorting():
         
         # Refresh list
         resp = requests.get(f"{BASE_URL}/bookmarks/", headers=headers)
-        bookmarks = resp.json()['data']
+        bookmarks = resp.json().get('data', [])
 
     print(f"Total Bookmarks: {len(bookmarks)}")
 
@@ -50,7 +53,7 @@ def test_bookmark_sorting():
         print(f"Failed to get bookmarks: {resp.text}")
         sys.exit(1)
         
-    bookmarks = resp.json()['data']
+    bookmarks = resp.json().get('data', [])
     names = [b['name'] for b in bookmarks]
     print(f"Names: {names}")
     
@@ -62,7 +65,7 @@ def test_bookmark_sorting():
     # 4. Test Sort by Name DESC
     print("\nTesting Sort by Name DESC...")
     resp = requests.get(f"{BASE_URL}/bookmarks/?sort_by=name&order=desc", headers=headers)
-    bookmarks = resp.json()['data']
+    bookmarks = resp.json().get('data', [])
     names = [b['name'] for b in bookmarks]
     print(f"Names: {names}")
     
@@ -74,7 +77,7 @@ def test_bookmark_sorting():
     # 5. Test Sort by Created At (Default)
     print("\nTesting Sort by Created At (Default - DESC)...")
     resp = requests.get(f"{BASE_URL}/bookmarks/", headers=headers)
-    bookmarks = resp.json()['data']
+    bookmarks = resp.json().get('data', [])
     dates = [b['created_at'] for b in bookmarks]
     # print(f"Dates: {dates}")
     

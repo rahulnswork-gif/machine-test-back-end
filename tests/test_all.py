@@ -78,7 +78,8 @@ def test_all():
     elif response.status_code == 400 and "already bookmarked" in response.text:
         print("✓ Bookmark already exists")
         list_resp = requests.get(f"{BASE_URL}/bookmarks/", headers=headers)
-        bookmark_id = list_resp.json()[0]['id'] if list_resp.json() else None
+        data = list_resp.json().get('data', [])
+        bookmark_id = data[0]['id'] if data else None
     else:
         print(f"✗ Add Bookmark failed: {response.text}")
         bookmark_id = None
@@ -87,7 +88,8 @@ def test_all():
     print("\n7. Testing List Bookmarks...")
     response = requests.get(f"{BASE_URL}/bookmarks/", headers=headers)
     if response.status_code == 200:
-        print(f"✓ List Bookmarks successful. Count: {len(response.json())}")
+        data = response.json().get('data', [])
+        print(f"✓ List Bookmarks successful. Count: {len(data)}")
     else:
         print(f"✗ List Bookmarks failed: {response.text}")
 
@@ -96,7 +98,9 @@ def test_all():
     response = requests.get(f"{BASE_URL}/analytics/stats", headers=headers)
     if response.status_code == 200:
         stats = response.json()
-        print(f"✓ Bookmark Stats successful. Dates: {len(stats['dates'])}, Total bookmarks: {sum(stats['counts'])}")
+        periods = stats['bookmarks_per_period']['periods']
+        counts = stats['bookmarks_per_period']['counts']
+        print(f"✓ Bookmark Stats successful. Periods: {len(periods)}, Total bookmarks: {sum(counts)}")
     else:
         print(f"✗ Bookmark Stats failed: {response.text}")
 

@@ -46,7 +46,8 @@ def test_bookmarks():
         print("Bookmark already exists")
         # Get list to find id
         list_resp = requests.get(f"{BASE_URL}/bookmarks/", headers=headers)
-        bookmark_id = list_resp.json()[0]['id']
+        data = list_resp.json().get('data', [])
+        bookmark_id = data[0]['id'] if data else None
     else:
         print(f"Add Bookmark failed: {response.text}")
         return
@@ -55,7 +56,8 @@ def test_bookmarks():
     print("Testing List Bookmarks...")
     response = requests.get(f"{BASE_URL}/bookmarks/", headers=headers)
     if response.status_code == 200:
-        print(f"List Bookmarks successful. Count: {len(response.json())}")
+        data = response.json().get('data', [])
+        print(f"List Bookmarks successful. Count: {len(data)}")
     else:
         print(f"List Bookmarks failed: {response.text}")
 

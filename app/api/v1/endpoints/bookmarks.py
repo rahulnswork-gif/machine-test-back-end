@@ -20,6 +20,9 @@ def create_bookmark(
     bookmark_in: BookmarkCreate,
     current_user: User = Depends(deps.get_current_user),
 ) -> Any:
+    """
+    Create a new bookmark.
+    """
     # Check if already bookmarked
     existing = db.query(Bookmark).filter(
         Bookmark.user_id == current_user.id,
@@ -49,6 +52,9 @@ def read_bookmarks(
     order: str = Query("desc", description="Sort order (asc, desc)"),
     current_user: User = Depends(deps.get_current_user),
 ) -> Any:
+    """
+    Retrieve bookmarks with pagination, search, and sorting.
+    """
     # Calculate skip
     skip = (page - 1) * per_page
     
@@ -93,6 +99,9 @@ def delete_bookmark(
     bookmark_id: int,
     current_user: User = Depends(deps.get_current_user),
 ) -> Any:
+    """
+    Delete a bookmark.
+    """
     bookmark = db.query(Bookmark).filter(
         Bookmark.id == bookmark_id,
         Bookmark.user_id == current_user.id
@@ -111,6 +120,9 @@ async def import_bookmarks(
     file: UploadFile = File(...),
     current_user: User = Depends(deps.get_current_user),
 ) -> Any:
+    """
+    Import bookmarks from a CSV file.
+    """
     if not file.filename.endswith('.csv'):
         raise HTTPException(status_code=400, detail="Invalid file format. Please upload a CSV file.")
     
@@ -157,8 +169,8 @@ async def import_bookmarks(
             db.add(bookmark)
             added_bookmarks.append(bookmark)
             
-        except Exception as e:
-            print(f"Error processing {owner}/{repo_name}: {e}")
+        except Exception:
+            # Skip if any error occurs during processing
             continue
 
     db.commit()

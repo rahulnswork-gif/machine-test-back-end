@@ -23,11 +23,13 @@ def get_bookmark_stats(
     """
     Get bookmark statistics with date range filtering, zero-filling, and timezone support.
     
-    Logic:
-    1. Validate timezone.
-    2. Filter by start_date and end_date (interpreted in the given timezone).
-    3. Group by date in the given timezone.
-    4. Fill missing dates with 0 counts.
+    Args:
+        start_date: Start date (YYYY-MM-DD). Defaults to user creation date or 30 days ago.
+        end_date: End date (YYYY-MM-DD). Defaults to today.
+        timezone: Timezone for date grouping (e.g., 'UTC', 'Asia/Kolkata').
+    
+    Returns:
+        JSON with bookmarks per period, top owners, and summary stats.
     """
     
     # Validate timezone

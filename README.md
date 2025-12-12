@@ -71,9 +71,10 @@ A complete FastAPI backend application for managing GitHub repository bookmarks 
 
 ## Testing
 
-Run comprehensive tests:
+Run comprehensive tests using pytest:
 ```bash
-python3 test_all.py
+export PYTHONPATH=$PYTHONPATH:.
+pytest tests/
 ```
 
 ## Project Structure
@@ -86,6 +87,8 @@ app/
 ├── schemas/             # Pydantic schemas
 ├── services/            # External services (GitHub)
 └── main.py              # App entry point
+tests/                   # Test suite
+alembic/                 # Database migrations
 ```
 
 ## Tech Stack

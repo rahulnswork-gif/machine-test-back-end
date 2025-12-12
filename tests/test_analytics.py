@@ -104,28 +104,27 @@ def test_analytics():
     print(f"  Total Owners: {data['summary']['total_owners']}")
     print(f"  Date Range: {data['summary']['date_range']['start']} to {data['summary']['date_range']['end']}")
     
-    # Bookmarks per date
-    print("\n📅 BOOKMARKS PER DATE")
-    for date, count in zip(data['bookmarks_per_date']['dates'], data['bookmarks_per_date']['counts']):
-        print(f"  {date}: {count} bookmark(s)")
+    # Bookmarks per period
+    print("\n📅 BOOKMARKS PER PERIOD")
+    for period, count in zip(data['bookmarks_per_period']['periods'], data['bookmarks_per_period']['counts']):
+        print(f"  {period}: {count} bookmark(s)")
     
     # Repositories per owner
     print("\n👤 REPOSITORIES PER OWNER (Total)")
     for owner, count in zip(data['repos_per_owner']['owners'], data['repos_per_owner']['counts']):
         print(f"  {owner}: {count} repo(s)")
     
-    # Timeline data
-    print("\n📈 REPOSITORIES PER OWNER TIMELINE")
-    for item in data['repos_per_owner_timeline']:
-        print(f"  {item['date']} - {item['owner']}: {item['count']} repo(s)")
+    # Timeline data (Removed as it is not in the current API response)
+    # print("\n📈 REPOSITORIES PER OWNER TIMELINE")
+    # for item in data.get('repos_per_owner_timeline', []):
+    #     print(f"  {item['date']} - {item['owner']}: {item['count']} repo(s)")
     
     print("\n" + "=" * 70)
     print("GRAPH DATA READY")
     print("=" * 70)
     print("\nThe API returns data in three formats:")
-    print("1. bookmarks_per_date - Line/Bar chart of total bookmarks over time")
+    print("1. bookmarks_per_period - Line/Bar chart of total bookmarks over time")
     print("2. repos_per_owner - Pie/Bar chart of repositories per owner")
-    print("3. repos_per_owner_timeline - Stacked area/line chart showing owner activity over time")
     
     print("\n✅ Analytics endpoint is working correctly!")
     print("\nFull JSON Response:")

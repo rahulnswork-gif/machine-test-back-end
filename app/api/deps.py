@@ -17,6 +17,10 @@ reusable_oauth2 = OAuth2PasswordBearer(
 )
 
 def get_db() -> Generator:
+    """
+    Dependency to get a database session.
+    Yields a session and closes it after the request is finished.
+    """
     try:
         db = SessionLocal()
         yield db
@@ -26,6 +30,11 @@ def get_db() -> Generator:
 def get_current_user(
     db: Session = Depends(get_db), token: str = Depends(reusable_oauth2)
 ) -> User:
+    """
+    Dependency to get the current authenticated user.
+    Validates the JWT token and checks if the user exists and is active.
+    Also checks if the token has been blacklisted (logged out).
+    """
     try:
         payload = jwt.decode(
             token, settings.SECRET_KEY, algorithms=[security.ALGORITHM]
