@@ -12,12 +12,15 @@ from app.models.user import User
 from app.models.token_blacklist import TokenBlacklist
 from app.schemas.user import UserCreate, User as UserSchema
 from app.schemas.token import Token
+from fastapi import Request
+from app.core.ratelimit import limiter
 
 router = APIRouter()
 
 @router.post("/login", response_model=Token)
+@limiter.limit("5/minute")
 def login_access_token(
-    db: Session = Depends(deps.get_db), form_data: OAuth2PasswordRequestForm = Depends()
+    request: Request, db: Session = Depends(deps.get_db), form_data: OAuth2PasswordRequestForm = Depends()
 ) -> Any:
     """
     OAuth2 compatible token login, get an access token for future requests.
@@ -115,8 +118,10 @@ def logout(
     return {"msg": "Successfully logged out"}
 
 @router.post("/register", response_model=UserSchema)
+@limiter.limit("5/minute")
 def register_user(
     *,
+    request: Request,
     db: Session = Depends(deps.get_db),
     user_in: UserCreate,
 ) -> Any:

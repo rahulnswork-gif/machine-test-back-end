@@ -8,6 +8,7 @@ pydantic-settings
 python-jose[cryptography]
 passlib[bcrypt]
 httpx
+slowapi
 python-multipart
 pandas
 email-validator
